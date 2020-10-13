@@ -25,17 +25,116 @@ class Api extends REST_Controller{
 		
 	}
 
-	public function personas_get(){
-		$this->response($this->Persona->findAll());
+	public function personas_get($id_user){
+		$token = $this->input->get_request_header('token', TRUE);
+		$user_token = $this->User_token->checkToken($token);
+		if(!$user_token){
+			return $this->response(array(
+				"status"=>"No autorizado"
+			),REST_Controller::HTTP_FORBIDDEN);
+		}
+
+		$persona = $this->Persona->findById($id_user);
+		if($persona){
+			$response = array(
+				"status"=>"success",
+				"token"=>$user_token,
+				"data"=>$persona
+			);
+		}else{
+			$response = array(
+				"status"=>"error",
+				"token"=>$user_token
+			);
+		}
+
+		return $this->response($response);
 	}
 
-	public function personas_post(){
-		//$input_data = json_decode(trim(file_get_contents('php://input')), true);
-		$id = $this->post("id");
-		$this->response(["id"=>$id]);
+	public function activar_cuenta_get($id_user){
+		$token = $this->input->get_request_header('token', TRUE);
+		$user_token = $this->User_token->checkToken($token);
+		if(!$user_token){
+			return $this->response(array(
+				"status"=>"No autorizado"
+			),REST_Controller::HTTP_FORBIDDEN);
+		}
+
+		$persona = $this->Persona->activarDesactivarCuenta($id_user,"A");
+
+		if($persona){
+			$response = array(
+				"status"=>"success",
+				"token"=>$user_token,
+				"data"=>"Cuenta activada exitosamente"
+			);
+		}else{
+			$response = array(
+				"status"=>"error",
+				"token"=>$user_token,
+				"data"=>"No se pudo activar la cuenta"
+			);
+		}
+
+		return $this->response($response);
 	}
 
-	
+	public function desactivar_cuenta_get($id_user){
+		$token = $this->input->get_request_header('token', TRUE);
+		$user_token = $this->User_token->checkToken($token);
+		if(!$user_token){
+			return $this->response(array(
+				"status"=>"No autorizado"
+			),REST_Controller::HTTP_FORBIDDEN);
+		}
+
+		$persona = $this->Persona->activarDesactivarCuenta($id_user,"I");
+
+		if($persona){
+			$response = array(
+				"status"=>"success",
+				"token"=>$user_token,
+				"data"=>"Cuenta desactivada exitosamente"
+			);
+		}else{
+			$response = array(
+				"status"=>"error",
+				"token"=>$user_token,
+				"data"=>"No se pudo desactivar la cuenta"
+			);
+		}
+
+		return $this->response($response);
+	}
+
+	public function cuenta_pendiente_get($id_user){
+		$token = $this->input->get_request_header('token', TRUE);
+		$user_token = $this->User_token->checkToken($token);
+		if(!$user_token){
+			return $this->response(array(
+				"status"=>"No autorizado"
+			),REST_Controller::HTTP_FORBIDDEN);
+		}
+
+		$persona = $this->Persona->activarDesactivarCuenta($id_user,"P");
+
+		if($persona){
+			$response = array(
+				"status"=>"success",
+				"token"=>$user_token,
+				"data"=>"Cuenta en estado pendiente de activar"
+			);
+		}else{
+			$response = array(
+				"status"=>"error",
+				"token"=>$user_token,
+				"data"=>"No se pudo cambiar el estado de la cuenta"
+			);
+		}
+
+		return $this->response($response);
+	}
+
 	public function registro_post(){
 		$nombre = $this->post("nombre");
 		// Apellido es opcional
@@ -61,9 +160,6 @@ class Api extends REST_Controller{
 		}
 		$usuario = $this->post("username");
 		$password = $this->post("password");
-		$fecha_creacion = date("Y-m-d H:i:s");
-		$fecha_modificacion = date("Y-m-d H:i:s");
-		$estado = "P";
 
 		$data = array(
 			"p_nombre"=>$nombre,
@@ -73,32 +169,32 @@ class Api extends REST_Controller{
 			"p_correo" => $correo,
 			"p_telefono" => $telefono,
 			"p_usuario" => $usuario,
-			"p_pass" => md5(sha1($password)),
-			"p_fechaCreacion" => $fecha_creacion,
-			"p_fechaModificacion" => $fecha_modificacion,
-			"p_estado" => $estado
+			"p_pass" => md5(sha1($password))
 		);
-
-		$persona_id = $this->Persona->insert($data);
 		
+		$persona_id = $this->Persona->insert($data);
+			
 		$persona = $this->Persona->findById($persona_id);
 
-		if($this->sendNewEmail($persona->p_correo)){
+		if($this->sendNewEmail($persona->p_correo, "Registro Exitoso", "Su cuenta ha sido creada con exito")){
 			$email_status = "Enviado";
 		}else{
 			$email_status = "No enviado";
 		}
 
+		$token = $this->User_token->generateToken($persona->p_id);
+
 		$response = array(
-			"message"=>"Nuevo usuario registrado correctamente",
+			"status"=>"Nuevo usuario registrado correctamente",
 			"email_status"=>$email_status,
+			"token"=>$token,
 			"data"=>$persona
 		);
 
 		return $this->response($response);
 	}
 
-	public function sendNewEmail($email){
+	public function sendNewEmail($email, $subject = "API_ERICK", $message = "Este es un correo de prueba"){
 		/**
 		 * Preguntar a erick si, la funcion enviar email sera un request por aparte, o si en el momento de crear 
 		 * un nuevo usuario, se enviará automaticamente
@@ -109,7 +205,7 @@ class Api extends REST_Controller{
 		$config['protocol'] = 'smtp';
 		$config['smtp_host'] = 'smtp.sendgrid.net';
 		$config['smtp_user'] = 'apikey';
-		$config['smtp_pass'] = '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';
+		$config['smtp_pass'] = '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';
 		$config['smtp_port'] = '587';
 		$config['newline'] = '\n';
 
@@ -118,8 +214,8 @@ class Api extends REST_Controller{
 		$this->email->from('die.menen@gmail.com',"Diego Menendez");
 		$this->email->to($email);
 
-		$this->email->subject("Test");
-		$this->email->message("Este es solo un correo de prueba");
+		$this->email->subject($subject);
+		$this->email->message($message);
 		if( $this->email->send()){
 			return True;
 		}else{
@@ -129,19 +225,22 @@ class Api extends REST_Controller{
 
 	public function login_post(){
 		if (!$this->post("username") or !$this->post("password")){
-			return $this->response(["message"=>"Username or pasword not found"]);
+			return $this->response(["status"=>"Username or pasword not found"]);
 		}
 		$username = $this->post("username");
 		$password = md5(sha1($this->post("password")));
 		$persona = $this->Persona->findByUsernameAndPass($username, $password);
 		if($persona){
+			$user_tokens = $this->User_token->deleteTokens($persona->p_id);
+			$token = $this->User_token->generateToken($persona->p_id);
 			$response = array(
-				"message"=>"success",
+				"status"=>"success",
+				"token"=>$token,
 				"data"=>$persona
 			);
 		}else{
 			$response = array(
-				"message"=>"Usuario o contraseña incorrectos",
+				"status"=>"Usuario o contraseña incorrectos",
 				"data"=>array()
 			);
 		}
@@ -151,47 +250,479 @@ class Api extends REST_Controller{
 
 	public function olvido_contrasena_post(){
 		if(!$this->post("email")){
-			return $this->response(["message"=>"El correo electronico es requerido"]);
+			return $this->response(["status"=>"El correo electronico es requerido"]);
 		}
 
 		$correo = $this->post("email");
-		$this->Persona->findByEmail($correo);
+		$persona = $this->Persona->findByEmail($correo);
+
+		$newPass = $this->Persona->generateRandomPass();
+
+		$data = array(
+			"p_pass"=>md5(sha1($newPass))
+		);
+
+		if($this->sendNewEmail($persona->p_correo, "Cambio contraseña", "Su nueva contraseña es: ".$newPass)){
+			$email_status = "Enviado";
+			$persona_update = $this->Persona->updatePass($persona->p_id, $data);
+		}else{
+			$email_status = "No enviado";
+		}
+
+		if($persona_update){
+			$response = array(
+				"message" => "success",
+				"email_status"=>$email_status
+			);
+		}else{
+			$response = array(
+				"message" => "error",
+				"email_status"=>$email_status
+			);
+		}
+
 		$this->response($response);
 	}
 
-	public function confirmToken_get(){
-		// Evaluar token
+	public function listar_eventos_get(){
+		$token = $this->input->get_request_header('token', TRUE);
+		$user_token = $this->User_token->checkToken($token);
+		if(!$user_token){
+			return $this->response(array(
+				"status"=>"No autorizado"
+			),REST_Controller::HTTP_FORBIDDEN);
+		}
+
+		$eventos = $this->Evento->findAll();
+
+		$response = array(
+			"status"=> "success",
+			"token"=>$user_token,
+			"data"=>$eventos
+		);
+		return $this->response($response);
+	}
+
+	public function evento_get($id_evento){
+		$token = $this->input->get_request_header('token', TRUE);
+		$user_token = $this->User_token->checkToken($token);
+		if(!$user_token){
+			return $this->response(array(
+				"status"=>"No autorizado"
+			),REST_Controller::HTTP_FORBIDDEN);
+		}
+
+		$evento = $this->Evento->findById($id_evento);
+
+		if($evento){
+			$persona = $this->Persona->findById($evento->p_id);
+		}else{
+			$response = array(
+				"status"=>"error",
+				"token"=>$token,
+				"data"=>null
+			);
+
+			return $this->response($response,REST_Controller::HTTP_NOT_FOUND);
+		}
+
+		if($persona){
+			unset($evento->p_id);
+		}else{
+			$persona = array();
+		}
 		
-		$token = $this->input->get_request_header('token');
-        $p_id = $this->User_token->checkToken($token);
-       
-        if($userId !=''){
-            $sql = "SELECT * FROM users WHERE userId = ?";
-            $results = $this->db->query($sql, array($userId));
-            $loginData = $results->row();
-           
-            $dataupdate = array(
-                   'updated'=> gmdate("Y-m-d H:i:s"),
-                   'status'=>1
-                   );
-            $this->db->where('userId', $userId);
-            $this->db->update('users', $dataupdate);
-               
-            $this->db->where('tktToken', $this->uri->segment(3));
-            $this->db->where('tktReason', "register");
-            $this->db->delete('tickets');
-            $sess_array = array(
-                                'userId' => $loginData->userId,
-                                'email' => $loginData->email
-                                );
-               $this->session->set_userdata('logged_in', $sess_array);
-               $this->session->set_flashdata('msg', 'You has been confirmed as member');
-               redirect('users/index', 'refresh'); 
-        }
-        else{
-            $this->session->set_flashdata('msg', 'Your request process not success, You entered with an incorrect code');
-            redirect('users/index', 'refresh');
-            }
-       
-    }
+		$evento->persona = $persona;
+
+		$response = array(
+			"status"=>"success",
+			"token"=>$user_token,
+			"data"=>$evento
+		);
+
+		return $this->response($response,REST_Controller::HTTP_OK);
+	}
+
+	public function editar_evento_put($id_evento){
+		$token = $this->input->get_request_header('token', TRUE);
+		$user_token = $this->User_token->checkToken($token);
+		if(!$user_token){
+			return $this->response(array(
+				"status"=>"No autorizado"
+			),REST_Controller::HTTP_FORBIDDEN);
+		}
+
+		$error_code = "REST_Controller::HTTP_OK";
+
+		$data = $this->put();
+
+		$evento_update = $this->Evento->update($id_evento, $data);
+		
+		if($evento_update){
+			$evento = $this->Evento->findById($id_evento);
+			$persona = array();
+			if($evento){
+				$persona = $this->Persona->findById($evento->p_id);
+				if($persona){
+					unset($evento->p_id);
+				}
+			}else{
+				$response = array(
+					"status"=>"error",
+					"token"=>$user_token,
+				);
+				return $this->response($response);
+			}
+			$evento->persona = $persona;
+			$response = array(
+				"status"=>"success",
+				"token"=>$user_token,
+				"data"=>$evento
+			);
+		}else{
+			$response = array(
+				"status"=>"error",
+				"token"=>$user_token
+			);
+			$error_code = "REST_Controller::HTTP_404";
+		}
+
+		return $this->response($response,$error_code);
+	}
+
+	public function activar_evento_get($id){
+		$token = $this->input->get_request_header('token', TRUE);
+		$user_token = $this->User_token->checkToken($token);
+		if(!$user_token){
+			return $this->response(array(
+				"status"=>"No autorizado"
+			),REST_Controller::HTTP_FORBIDDEN);
+		}
+
+		$evento_activado = $this->Evento->cambiarEstado($id, "A");
+
+		if($evento_activado){
+			$response = array(
+				"status"=>"success",
+				"token"=>$user_token,
+				"data"=>True
+			);
+			return $this->response($response,REST_Controller::HTTP_OK);
+		}else{
+			$response = array(
+				"status"=>"error",
+				"token"=>$user_token,
+				"data"=>False
+			);
+			return $this->response($response,REST_Controller::HTTP_NOT_FOUND);
+		}
+	}
+
+	public function cancelar_evento_get($id){
+		$token = $this->input->get_request_header('token', TRUE);
+		$user_token = $this->User_token->checkToken($token);
+		if(!$user_token){
+			return $this->response(array(
+				"status"=>"No autorizado"
+			),REST_Controller::HTTP_FORBIDDEN);
+		}
+
+		$evento_activado = $this->Evento->cambiarEstado($id, "C");
+
+		if($evento_activado){
+			$response = array(
+				"status"=>"success",
+				"token"=>$user_token,
+				"data"=>True
+			);
+			return $this->response($response,REST_Controller::HTTP_OK);
+		}else{
+			$response = array(
+				"status"=>"error",
+				"token"=>$user_token,
+				"data"=>False
+			);
+			return $this->response($response,REST_Controller::HTTP_NOT_FOUND);
+		}
+	}
+
+	public function realizar_evento_get($id){
+		$token = $this->input->get_request_header('token', TRUE);
+		$user_token = $this->User_token->checkToken($token);
+		if(!$user_token){
+			return $this->response(array(
+				"status"=>"No autorizado"
+			),REST_Controller::HTTP_FORBIDDEN);
+		}
+
+		$evento_activado = $this->Evento->cambiarEstado($id, "R");
+
+		if($evento_activado){
+			$response = array(
+				"status"=>"success",
+				"token"=>$user_token,
+				"data"=>True
+			);
+			return $this->response($response,REST_Controller::HTTP_OK);
+		}else{
+			$response = array(
+				"status"=>"error",
+				"token"=>$user_token,
+				"data"=>False
+			);
+			return $this->response($response,REST_Controller::HTTP_NOT_FOUND);
+		}
+	}
+
+	public function crear_evento_post(){
+		$token = $this->input->get_request_header('token', TRUE);
+		$user_token = $this->User_token->checkToken($token);
+		if(!$user_token){
+			return $this->response(array(
+				"status"=>"No autorizado"
+			),REST_Controller::HTTP_FORBIDDEN);
+		}
+
+		//ev_nombreEvento,ev_fechaEvento,ev_lugarEvento,ev_HoraInicio,ev_HoraFin,ev_descripcion,p_id
+		$data = $this->post();
+		$evento = $this->Evento->crear($data);
+
+		if($evento){
+			$evento_info = $this->Evento->findById($evento);
+			$persona = $this->Persona->findById($evento_info->p_id);
+			if($persona){
+				unset($evento_info->p_id);
+			}
+			$evento_info->persona = $persona;
+			$response = array(
+				"status"=>"success",
+				"token"=>$user_token,
+				"data"=>$evento_info
+			);
+		}else{
+			$response = array(
+				"status"=>"error",
+				"token"=>$user_token
+			);
+		}
+
+		return $this->response($response);
+	}
+
+	public function evento_desuscribir_get($id_sus){
+		$token = $this->input->get_request_header('token', TRUE);
+		$user_token = $this->User_token->checkToken($token);
+		if(!$user_token){
+			return $this->response(array(
+				"status"=>"No autorizado"
+			),REST_Controller::HTTP_FORBIDDEN);
+		}
+
+		$suscripcion = $this->Suscripcion->desuscribir($id_sus);
+
+		if($suscripcion){
+			$response = array(
+				"status"=>"success",
+				"token"=>$user_token,
+				"data"=>True
+			);
+		}else{
+			$response = array(
+				"status"=>"error",
+				"token"=>$user_token,
+				"data"=>False
+			);
+		}
+
+		return $this->response($response);
+	}
+
+	public function eliminar_evento_delete($id){
+		$token = $this->input->get_request_header('token', TRUE);
+		$user_token = $this->User_token->checkToken($token);
+		if(!$user_token){
+			return $this->response(array(
+				"status"=>"No autorizado"
+			),REST_Controller::HTTP_FORBIDDEN);
+		}
+
+		$evento = $this->Evento->findById($id);
+
+		if($evento){
+			if($this->Evento->eliminar($id)){
+				$response = array(
+					"status"=>"success",
+					"token"=>$user_token,
+					"data"=>True
+				);
+			}else{
+				$response = array(
+					"status"=>"error",
+					"token"=>$user_token,
+					"data"=>False
+				);
+			}
+		}else{
+			$response = array(
+				"status"=>"error",
+				"token"=>$user_token,
+				"data"=>False
+			);
+		}
+
+		return $this->response($response);
+	}
+
+	public function eventos_usuario_get($id_user){
+		$token = $this->input->get_request_header('token', TRUE);
+		$user_token = $this->User_token->checkToken($token);
+		if(!$user_token){
+			return $this->response(array(
+				"status"=>"No autorizado"
+			),REST_Controller::HTTP_FORBIDDEN);
+		}
+
+		$persona = $this->Persona->findById($id_user);
+
+		if($persona){
+			$eventos = $this->Evento->findByUserId($id_user);
+			if($eventos){
+				$response = array(
+					"status"=>"success",
+					"token"=>$user_token,
+					"data"=>array(
+						"persona"=>$persona,
+						"eventos"=>$eventos
+					)
+				);
+			}else{
+				$response = array(
+					"status"=>"error",
+					"token"=>$user_token
+				);
+			}
+		}else{
+			$response = array(
+				"status"=>"error",
+				"token"=>$user_token
+			);
+		}
+
+		
+
+		return $this->response($response);
+	}
+
+	public function suscribir_evento_post(){
+		$token = $this->input->get_request_header('token', TRUE);
+		$user_token = $this->User_token->checkToken($token);
+		if(!$user_token){
+			return $this->response(array(
+				"status"=>"No autorizado"
+			),REST_Controller::HTTP_FORBIDDEN);
+		}
+		
+		$data = array(
+			"p_id"=>$this->post("p_id"),
+			"ev_id"=>$this->post("ev_id")
+		);
+
+		if($new_sus = $this->Suscripcion->crear($data)){
+			$suscripcion = $this->Suscripcion->findById($new_sus);
+			$persona = $this->Persona->findById($suscripcion->p_id);
+			$evento = $this->Evento->findById($suscripcion->ev_id);
+
+			unset($suscripcion->p_id);
+			unset($suscripcion->ev_id);
+			$suscripcion->persona = $persona;
+			$suscripcion->evento = $evento;
+			$response = array(
+				"status"=>"success",
+				"token"=>$user_token,
+				"data"=>$suscripcion
+			);
+		}else{
+			$response = array(
+				"status"=>"error",
+				"token"=>$user_token
+			);
+		}
+
+		return $this->response($response);
+	}
+
+	public function editar_usuario_put(){
+		$token = $this->input->get_request_header('token', TRUE);
+		$user_token = $this->User_token->checkToken($token);
+		if(!$user_token){
+			return $this->response(array(
+				"status"=>"No autorizado"
+			),REST_Controller::HTTP_FORBIDDEN);
+		}
+
+		//p_nombre, p_apellido, p_fecha_nac, p_genero, p_correo, p_telefono, p_pass
+		$p_id = $this->put("p_id");
+		$p_nombre = $this->put("p_nombre");
+		$p_apellido = $this->put("p_apellido");
+		$p_fecha_nac = DateTime::createFromFormat("d-m-Y", $this->put("p_fecha_nac"))->format("Y-m-d");
+		$p_genero = $this->put("p_genero");
+		$p_correo = $this->put("p_correo");
+		$p_telefono = $this->put("p_telefono");
+		$p_pass = md5(sha1($this->put("p_pass")));
+		
+		$data = array(
+			"p_nombre"=>$p_nombre,
+			"p_apellido"=>$p_apellido,
+			"p_fecha_nac"=>$p_fecha_nac,
+			"p_genero"=>$p_genero,
+			"p_correo"=>$p_correo,
+			"p_telefono"=>$p_telefono,
+			"p_pass"=>$p_pass
+		);
+
+		$persona_update = $this->Persona->update($p_id, $data);
+
+		if($persona_update){
+			$persona = $this->Persona->findById($p_id);
+			$response = array(
+				"message" => "success",
+				"token" => $user_token,
+				"data" => $persona
+			);
+		}else{
+			$response = array(
+				"message" => "error",
+				"token" => $user_token
+			);
+		}
+
+		return $this->response($response);
+
+	}
+
+	public function eliminar_usuario_delete($id_user){
+		$token = $this->input->get_request_header('token', TRUE);
+		$user_token = $this->User_token->checkToken($token);
+		if(!$user_token){
+			return $this->response(array(
+				"status"=>"No autorizado"
+			),REST_Controller::HTTP_FORBIDDEN);
+		}
+
+		$persona = $this->Persona->eliminar($id_user);
+
+		if($persona){
+			$response = array(
+				"status"=>"success",
+				"token"=>$user_token
+			);
+		}else{
+			$response = array(
+				"status"=>"error",
+				"token"=>$user_token
+			);
+		}
+
+		return $this->response($response);
+	}
 }

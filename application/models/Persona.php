@@ -42,14 +42,64 @@ class Persona extends CI_Model
 	public function findById($p_id){
 		$this->db->select();
 		$this->db->from($this->table);
-		$this->db->where("p_id",$p_id);
+		$this->db->where($this->table_id,$p_id);
 		$query = $this->db->get();
-		return $query->row();
+		if($query->num_rows() > 0){
+			return $query->row();
+		}else{
+			return False;
+		}	
 	}
 
 	public function insert($data){
 		$this->db->insert($this->table, $data);
 		return $this->db->insert_id();
+	}
+
+	public function updatePass($p_id, $data){
+		$this->db->where($this->table_id, $p_id);
+		if($this->db->update($this->table, $data)){
+			return True;
+		}else{
+			return False;
+		}
+	}
+
+	public function update($p_id, $data){
+		$this->db->where($this->table_id, $p_id);
+		if($this->db->update($this->table, $data)){
+			return True;
+		}else{
+			return False;
+		}
+	}
+	
+	public function activarDesactivarCuenta($p_id, $estado){
+		$this->db->where($this->table_id, $p_id);
+		if($this->db->update($this->table, array("p_estado"=>$estado))){
+			return True;
+		}else{
+			return False;
+		}
+	}
+
+	public function generateRandomPass() {
+		$characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%&=?¿)(';
+		$charactersLength = strlen($characters);
+		$randomString = '';
+		for ($i = 0; $i < 10; $i++) {
+			$randomString .= $characters[rand(0, $charactersLength - 1)];
+		}
+		return $randomString;
+	}
+
+	public function eliminar($id_user){
+		$this->db->where($this->table_id, $id_user);
+		if($this->db->delete($this->table)){
+			return True;
+		}else{
+			return False;
+		}
 	}
 
 	/*

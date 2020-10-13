@@ -10,11 +10,65 @@ class Evento extends CI_Model
 	}
 
 	public function findAll(){
-        $this->db->select();
-        $this->db->from($this->table);
-        $query = $this->db->get();
+        $query = $this->db->query("CALL SP_EventoListarTodos()");
         return $query->result();
-    }
+	}
+
+	public function findByUserId($id_user){
+		$this->db->select();
+		$this->db->from($this->table);
+		$this->db->where('p_id',$id_user);
+		$query = $this->db->get();
+		if($query->num_rows() > 0){
+			return $query->result();
+		}else{
+			return False;
+		}
+	}
+	
+	public function findById($id){
+		$this->db->select();
+		$this->db->from($this->table);
+		$this->db->where($this->table_id,$id);
+		$query = $this->db->get();
+		if($query->num_rows() > 0){
+			return $query->row();
+		}else{
+			return False;
+		}
+	}
+
+	public function update($id_evento, $data){
+		$this->db->where($this->table_id, $id_evento);
+		if($this->db->update($this->table, $data)){
+			return True;
+		}else{
+			return False;
+		}
+	}
+
+	public function cambiarEstado($id, $estado){
+		$this->db->where($this->table_id, $id);
+		if($this->db->update($this->table, array("ev_Estado"=> "{$estado}"))){
+			return True;
+		}else{
+			return False;
+		}
+	}
+
+	public function crear($data){
+		$this->db->insert($this->table, $data);
+		return $this->db->insert_id();
+	}
+
+	public function eliminar($id){
+		$this->db->where($this->table_id, $id);
+		if($this->db->delete($this->table)){
+			return True;
+		}else{
+			return False;
+		}
+	}
 
 	/*
     public function filtrar($alm_id){

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 08-10-2020 a las 00:43:09
+-- Tiempo de generación: 13-10-2020 a las 02:13:29
 -- Versión del servidor: 10.4.14-MariaDB
 -- Versión de PHP: 7.2.33
 
@@ -113,7 +113,7 @@ CREATE TABLE `eventos` (
 --
 
 INSERT INTO `eventos` (`ev_id`, `ev_nombreEvento`, `ev_fechaEvento`, `ev_lugarEvento`, `ev_HoraInicio`, `ev_HoraFin`, `ev_descripcion`, `ev_Estado`, `ev_FechaCreacion`, `ev_FechaModificacion`, `p_id`) VALUES
-(2, 'ver las estrellas', '2020-12-31', 'Res Libertad', '00:00:00', '02:00:00', 'Ojala no llueva', 'A', '2020-10-01 01:32:28', '2020-10-01 02:10:54', 2),
+(2, 'Ver las estrellas', '2020-10-09', 'San Salvador', '14:00:00', '17:00:00', 'Ojala no llueva', 'A', '2020-10-01 01:32:28', '2020-10-12 17:25:44', 74),
 (3, 'Liberacion Tortugas', '2020-10-25', 'Playa', '10:00:00', '15:00:00', 'traigan Palas', 'A', '2020-10-01 01:56:40', '2020-10-01 01:56:40', 4),
 (4, 'ver las estrellas', '2020-12-31', 'Res Libertad', '00:00:00', '02:00:00', 'Ojala no llueva', 'A', '2020-10-01 01:57:37', '2020-10-01 02:11:15', 4);
 
@@ -146,13 +146,9 @@ INSERT INTO `personas` (`p_id`, `p_nombre`, `p_apellido`, `p_fecha_nac`, `p_gene
 (2, 'Erick', 'Cruz', '1995-01-01', 'M', 'Correomodificado@gmailcom', '12345678', 'susy', 'minuevaPass', '2020-09-29 01:02:14', '2020-09-29 02:04:26', 'A'),
 (3, 'Susy', 'Hernandez', '1995-05-22', 'M', 'erick.cruz.dev@gmail.com', '70013052', 'Test', 'susy123', '2020-09-29 01:02:14', '2020-09-29 02:04:26', 'A'),
 (4, 'Diego', 'Menendez', '1995-05-09', 'M', 'diego@gmail.com', '75848524', 'Diegouser', 'DiegoPass', '2020-09-29 01:26:54', '2020-09-29 02:04:26', 'A'),
-(26, 'Diego 2', 'Rivera 2', '1995-07-09', 'M', 'dmenendez3075@gmail.com', '76037413', 'Diegouser', '78620173fcf772538a79270fca1067d4', '2020-10-08 00:24:38', '2020-10-08 00:24:38', 'P'),
-(27, 'Diego 2', 'Rivera 2', '1995-07-09', 'M', 'dmenendez3075@gmail.com', '76037413', 'Diegouser', '78620173fcf772538a79270fca1067d4', '2020-10-08 00:24:52', '2020-10-08 00:24:52', 'P'),
-(28, 'Diego 2', 'Rivera 2', '1995-07-09', 'M', 'dmenendez3075@gmail.com', '76037413', 'Diegouser', '78620173fcf772538a79270fca1067d4', '2020-10-08 00:25:07', '2020-10-08 00:25:07', 'P'),
-(29, 'Diego 2', 'Rivera 2', '1995-07-09', 'M', 'dmenendez3075@gmail.com', '76037413', 'Diegouser', '78620173fcf772538a79270fca1067d4', '2020-10-08 00:26:09', '2020-10-08 00:26:09', 'P'),
-(30, 'Diego 2', 'Rivera 2', '1995-07-09', 'M', 'dmenendez3075@gmail.com', '76037413', 'Diegouser', '78620173fcf772538a79270fca1067d4', '2020-10-08 00:32:29', '2020-10-08 00:32:29', 'P'),
-(31, 'Diego 2', 'Rivera 2', '1995-07-09', 'M', 'dmenendez3075@gmail.com', '76037413', 'Diegouser', '78620173fcf772538a79270fca1067d4', '2020-10-08 00:39:06', '2020-10-08 00:39:06', 'P'),
-(32, 'Diego 2', 'Rivera 2', '1995-07-09', 'M', 'dmenendez3075@gmail.com', '76037413', 'Diegouser', '78620173fcf772538a79270fca1067d4', '2020-10-08 00:40:08', '2020-10-08 00:40:08', 'P');
+(26, 'Diego 2', 'Rivera 2', '1995-07-09', 'M', 'dmenendez3075@gmail.com', '76037413', 'Diegouser', '416824e0bc19c81a6b0ed96ac45846cb', '2020-10-08 00:24:38', '2020-10-08 00:24:38', 'P'),
+(33, 'Erick from Postman', 'Cruz', '1995-05-22', 'M', 'die.menen@gmail.com', '50370013052', 'ecruz', 'f7752d71d859b8b207b66a908d037fdf', '2020-10-12 18:09:52', '2020-10-12 18:09:52', 'P'),
+(74, 'Erick from Postman', 'Cruz', '1995-05-22', 'M', 'ddsdie.menen@gmail.com', '50370013052', 'ecruz', 'f7752d71d859b8b207b66a908d037fdf', '2020-10-12 16:34:39', '2020-10-12 16:34:39', 'P');
 
 -- --------------------------------------------------------
 
@@ -174,8 +170,11 @@ CREATE TABLE `suscripciones` (
 --
 
 INSERT INTO `suscripciones` (`sc_id`, `p_id`, `ev_id`, `sc_fechaCreacion`, `sc_fechaModificacion`, `sc_estado`) VALUES
-(1, 2, 2, '2020-10-01 01:44:24', '2020-10-01 01:51:00', 'S'),
-(2, 4, 2, '2020-10-01 01:47:48', '2020-10-01 01:51:05', 'D');
+(1, 2, 2, '2020-10-01 01:44:24', '2020-10-12 17:47:42', 'D'),
+(2, 4, 2, '2020-10-01 01:47:48', '2020-10-01 01:51:05', 'D'),
+(3, 2, 4, '2020-10-12 18:10:35', '2020-10-12 18:10:35', 'S'),
+(4, 2, 4, '2020-10-12 18:10:55', '2020-10-12 18:10:55', 'S'),
+(5, 2, 4, '2020-10-12 18:11:54', '2020-10-12 18:11:54', 'S');
 
 -- --------------------------------------------------------
 
@@ -187,6 +186,7 @@ CREATE TABLE `user_tokens` (
   `id` int(11) NOT NULL,
   `token` longtext NOT NULL,
   `created_date` datetime NOT NULL DEFAULT current_timestamp(),
+  `end_date` datetime NOT NULL DEFAULT current_timestamp(),
   `p_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -194,8 +194,10 @@ CREATE TABLE `user_tokens` (
 -- Volcado de datos para la tabla `user_tokens`
 --
 
-INSERT INTO `user_tokens` (`id`, `token`, `created_date`, `p_id`) VALUES
-(1, 'adasdasdasdasdasdasdasd', '2020-10-07 13:25:42', 4);
+INSERT INTO `user_tokens` (`id`, `token`, `created_date`, `end_date`, `p_id`) VALUES
+(1, 'adasdasdasdasdasdasdasd', '2020-10-07 13:25:42', '2020-10-12 12:12:31', 4),
+(11, '541d7f02306f41b50d8853a0bb2add26', '2020-10-12 22:20:19', '2020-10-15 22:20:19', 33),
+(12, '20b59d6d32d50f1a6d486a00a03ebb68', '2020-10-13 00:34:40', '2020-10-16 00:34:40', 74);
 
 --
 -- Índices para tablas volcadas
@@ -212,7 +214,8 @@ ALTER TABLE `eventos`
 -- Indices de la tabla `personas`
 --
 ALTER TABLE `personas`
-  ADD PRIMARY KEY (`p_id`);
+  ADD PRIMARY KEY (`p_id`),
+  ADD UNIQUE KEY `p_correo` (`p_correo`);
 
 --
 -- Indices de la tabla `suscripciones`
@@ -237,25 +240,25 @@ ALTER TABLE `user_tokens`
 -- AUTO_INCREMENT de la tabla `eventos`
 --
 ALTER TABLE `eventos`
-  MODIFY `ev_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Es unico y autoincrementable', AUTO_INCREMENT=5;
+  MODIFY `ev_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Es unico y autoincrementable', AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `personas`
 --
 ALTER TABLE `personas`
-  MODIFY `p_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Id de la persona', AUTO_INCREMENT=33;
+  MODIFY `p_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Id de la persona', AUTO_INCREMENT=75;
 
 --
 -- AUTO_INCREMENT de la tabla `suscripciones`
 --
 ALTER TABLE `suscripciones`
-  MODIFY `sc_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Id de la suscripción al evento', AUTO_INCREMENT=3;
+  MODIFY `sc_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Id de la suscripción al evento', AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `user_tokens`
 --
 ALTER TABLE `user_tokens`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- Restricciones para tablas volcadas
